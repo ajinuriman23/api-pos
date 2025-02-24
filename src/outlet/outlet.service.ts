@@ -169,4 +169,14 @@ export class OutletService {
     }
   }
 
+  // update outlet status
+  async updateOutletStatus(id: number, status: string) {
+    const supabaseClient = this.supabaseService.getClient();
+    const { data, error } = await supabaseClient.from('outlets').update({ status }).eq('id', id).select();
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+    return data;
+  }
+
 }

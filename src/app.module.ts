@@ -8,11 +8,13 @@ import { UserModule } from './user/user.module';
 import { AuthMiddleware } from './common/middleware/auth/auth.middleware';
 import { OutletModule } from './outlet/outlet.module';
 import { ProfileModule } from './profile/profile.module';
+import { ProductModule } from './product/product.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [AuthModule,ConfigModule.forRoot({
     isGlobal: true,
-  }), UserModule, OutletModule, ProfileModule],
+  }), UserModule, OutletModule, ProfileModule, ProductModule, CategoryModule],
   controllers: [AppController],
   providers: [AppService, SupabaseService],  
 })

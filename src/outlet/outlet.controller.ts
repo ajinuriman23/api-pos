@@ -35,12 +35,18 @@ export class OutletController {
     const outletId = req.params.id
     return this.outletService.updateOutlet(+outletId, outletDto);
   }
-  
 
   @Delete(':id')
   @Roles('owner')
   async deleteOutlet(@Req() req: RequestWithUser) {
     const outletId = req.params.id
     return this.outletService.deleteOutlet(+outletId);
+  }
+
+  @Patch(':id/status')
+  @Roles('owner')
+  async updateOutletStatus(@Req() req: RequestWithUser, @Body() body: any) {
+    const outletId = req.params.id
+    return this.outletService.updateOutletStatus(+outletId, body.status);
   }
 }
