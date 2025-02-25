@@ -1,6 +1,5 @@
-import { CreateUserSchema } from "src/user/dto/create-user.schema";
-import { z } from "zod";
-
+import { CreateUserSchema } from 'src/user/dto/create-user.schema';
+import { z } from 'zod';
 
 export const CreateOutletSchema = z.object({
   name: z.string({ required_error: 'Nama outlet harus diisi' }),

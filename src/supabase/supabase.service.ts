@@ -14,8 +14,8 @@ export class SupabaseService {
       this.configService.getOrThrow('SUPABASE_KEY'),
       {
         auth: {
-          persistSession: false
-        }
+          persistSession: false,
+        },
       }
     );
 
@@ -25,8 +25,8 @@ export class SupabaseService {
       {
         auth: {
           persistSession: false,
-          autoRefreshToken: false
-        }
+          autoRefreshToken: false,
+        },
       }
     );
   }
@@ -47,11 +47,11 @@ export class SupabaseService {
 
   async verifyToken(token: string) {
     try {
-        const { data, error } = await this.supabase.auth.getUser(token);
-        if (error) throw error;
-        return data.user; // Mengembalikan data pengguna
+      const { data, error } = await this.supabase.auth.getUser(token);
+      if (error) throw error;
+      return data.user; // Mengembalikan data pengguna
     } catch (error) {
-        throw new Error('Invalid token');
+      throw new Error(error);
     }
-}
+  }
 }

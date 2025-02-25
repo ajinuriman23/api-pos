@@ -3,12 +3,13 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
+  HttpException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Response } from 'express';
 import { ZodError } from 'zod';
-  
+
 @Injectable()
 export class TransformResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -16,8 +17,7 @@ export class TransformResponseInterceptor implements NestInterceptor {
     const response = ctx.getResponse<Response>();
 
     return next.handle().pipe(
-      map((data) => {
-        // Format response success
+      map((data: unknown) => {
         return {
           statusCode: response.statusCode,
           message: 'Success',
@@ -25,11 +25,15 @@ export class TransformResponseInterceptor implements NestInterceptor {
         };
       }),
       catchError((error) => {
+        // Jika error adalah HttpException, teruskan ke ExceptionFilter
+        if (error instanceof HttpException) {
+          throw error;
+        }
+
         let status = 500;
         let message = 'Internal Server Error';
         let errorDetails: any = null;
 
-        // Tangani error dari Zod
         if (error instanceof ZodError) {
           status = 400;
           message = 'Validation Error';
@@ -38,30 +42,22 @@ export class TransformResponseInterceptor implements NestInterceptor {
             message: err.message,
             path: err.path,
           }));
-        }
-        // Tangani error dari Supabase
-        else if (error.message) {
-          status = error.status || 500;
+        } else if (error instanceof Error) {
+          status = 500;
           message = error.message;
           errorDetails = error;
         }
-        // Tangani error dari NestJS
-        else if (error.response) {
-          status = error.response.statusCode || 500;
-          message = error.response.message || 'Internal Server Error';
-          errorDetails = error.response;
-        }
 
-        // Set status code response
         response.status(status);
-
-        // Format response error
-        throw {
-          statusCode: status,
-          message: message, 
-          error: errorDetails,
-        };
-      }),
+        throw new HttpException(
+          {
+            statusCode: status,
+            message: message,
+            error: errorDetails as Record<string, unknown>,
+          },
+          status
+        );
+      })
     );
   }
 }
