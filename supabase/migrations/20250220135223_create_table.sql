@@ -174,12 +174,14 @@ CREATE INDEX idx_detail_transaction_transaction ON detail_transaction(transactio
 -- 20240220000010_create_carts.sql
 -- Up Migration
 CREATE TABLE carts (
-    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    product_id bigint REFERENCES products(id) ON DELETE CASCADE,
-    staff_id bigint REFERENCES users(id_user) ON DELETE CASCADE,
-    quantity int NOT NULL DEFAULT 1,
-    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+    id SERIAL PRIMARY KEY, -- atau BIGSERIAL untuk int8
+    product_id INT8 NOT NULL,
+    staff_id INT8 NOT NULL,
+    outlet_id INT8 NOT NULL, -- Tambahkan field outlet_id
+    quantity INT4 NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY (outlet_id) REFERENCES outlets(id) -- Relasi ke tabel outlets
 );
 
 CREATE TRIGGER update_carts_updated_at

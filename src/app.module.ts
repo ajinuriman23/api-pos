@@ -10,11 +10,12 @@ import { OutletModule } from './outlet/outlet.module';
 import { ProfileModule } from './profile/profile.module';
 import { ProductModule } from './product/product.module';
 import { CategoryModule } from './category/category.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [AuthModule,ConfigModule.forRoot({
     isGlobal: true,
-  }), UserModule, OutletModule, ProfileModule, ProductModule, CategoryModule],
+  }), UserModule, OutletModule, ProfileModule, ProductModule, CategoryModule, CartModule],
   controllers: [AppController],
   providers: [AppService, SupabaseService],  
 })
