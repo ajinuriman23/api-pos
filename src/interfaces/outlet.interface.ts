@@ -1,4 +1,4 @@
-type OutletStatus = 'open' | 'closed' | 'maintenance'; // Sesuaikan dengan enum yang ada di database
+export type OutletStatus = 'inactive' | 'active' | 'maintenance'; // Sesuaikan dengan enum yang ada di database
 
 export default interface Outlet {
   id: string | number;

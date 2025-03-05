@@ -3,60 +3,43 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  HttpException,
+  Logger,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Response } from 'express';
-import { ZodError } from 'zod';
 
 @Injectable()
 export class TransformResponseInterceptor implements NestInterceptor {
+  private readonly logger = new Logger(TransformResponseInterceptor.name);
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const startTime = Date.now();
+    const method = request.method;
+    const url = request.url;
+
+    // Log request
+    this.logger.log(`Incoming Request: [${method}] ${url}`);
 
     return next.handle().pipe(
+      tap(() => {
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        // Log success response dengan timing
+        this.logger.log(
+          `Response [${method}] ${url} completed in ${duration}ms`
+        );
+      }),
       map((data: unknown) => {
+        // Transformasi response sukses
         return {
           statusCode: response.statusCode,
           message: 'Success',
           data: data,
         };
-      }),
-      catchError((error) => {
-        // Jika error adalah HttpException, teruskan ke ExceptionFilter
-        if (error instanceof HttpException) {
-          throw error;
-        }
-
-        let status = 500;
-        let message = 'Internal Server Error';
-        let errorDetails: any = null;
-
-        if (error instanceof ZodError) {
-          status = 400;
-          message = 'Validation Error';
-          errorDetails = error.errors.map((err) => ({
-            code: err.code,
-            message: err.message,
-            path: err.path,
-          }));
-        } else if (error instanceof Error) {
-          status = 500;
-          message = error.message;
-          errorDetails = error;
-        }
-
-        response.status(status);
-        throw new HttpException(
-          {
-            statusCode: status,
-            message: message,
-            error: errorDetails as Record<string, unknown>,
-          },
-          status
-        );
       })
     );
   }

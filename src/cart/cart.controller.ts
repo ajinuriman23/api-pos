@@ -14,6 +14,7 @@ import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import RequestWithUser from 'src/interfaces/request.interface';
 import { SupabaseAuthGuard } from 'src/common/guards/auth/auth/auth.guard';
+import { OutletStatusGuard } from 'src/common/guards/outlet-status.guard';
 
 @UseGuards(SupabaseAuthGuard)
 @Controller('carts')
@@ -25,6 +26,7 @@ export class CartController {
     return this.cartService.getCartByUser(req);
   }
 
+  @UseGuards(OutletStatusGuard)
   @Post()
   create(@Req() req: RequestWithUser, @Body() createCartDto: CreateCartDto) {
     return this.cartService.create(req, createCartDto);

@@ -1,34 +1,73 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { SupabaseService } from 'src/supabase/supabase.service';
 import { SignInDto } from './dto/signin.schema';
 import { SignUpDto } from './dto/signup.schema';
-
+import { Logger } from 'winston';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 @Injectable()
 export class AuthService {
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger
+  ) {}
 
-    constructor(private readonly supabaseService: SupabaseService) {}
+  async signin(signinDto: SignInDto) {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .auth.signInWithPassword(signinDto);
 
-    async signin(signinDto: SignInDto) {
-        try {
-            const { data, error } = await this.supabaseService.getClient().auth.signInWithPassword(signinDto);
-            if (error) {
-                throw new Error(error.message);
-            }
-            return data;
-        } catch (error) {
-            throw new Error(error.message);
-        }
-    }  
-    
-    async signup(signupDto: SignUpDto) {
-        try {
-            const { data, error } = await this.supabaseService.getClient().auth.signUp(signupDto);
-            if (error) {
-                throw new Error(error.message);
-            }
-            return data;
-        } catch (error) {
-            throw new Error(error.message);
-        }
+    if (error) {
+      switch (error.status) {
+        case 400:
+          this.logger.error('Email atau password salah', {
+            error: error.message,
+          });
+          throw new BadRequestException({
+            message: 'Email atau password salah',
+            error: error.message,
+          });
+        case 404:
+          this.logger.error('User tidak ditemukan', {
+            error: error.message,
+          });
+          throw new NotFoundException({
+            message: 'User tidak ditemukan',
+            error: error.message,
+          });
+        default:
+          this.logger.error('Terjadi kesalahan saat login', {
+            error: error.message,
+          });
+          throw new InternalServerErrorException({
+            message: 'Terjadi kesalahan saat login',
+            error: error.message,
+          });
+      }
     }
+
+    if (!data) {
+      throw new NotFoundException({
+        message: 'User tidak ditemukan',
+        error: 'Data response kosong',
+      });
+    }
+
+    return data;
+  }
+
+  async signup(signupDto: SignUpDto) {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .auth.signUp(signupDto);
+    if (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+    return data;
+  }
 }

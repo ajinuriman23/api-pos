@@ -150,7 +150,7 @@ CREATE INDEX idx_transactions_date ON transactions(transaction_date);
 
 -- 20240220000009_create_detail_transaction.sql
 -- Up Migration
-CREATE TABLE detail_transaction (
+CREATE TABLE detail_transactions (
     id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     transaction_id bigint REFERENCES transactions(id) ON DELETE CASCADE,
     product_id bigint REFERENCES products(id) ON DELETE SET NULL,
@@ -208,3 +208,104 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE detail_transaction ENABLE ROW LEVEL SECURITY;
+
+
+-- create enum payment_method
+CREATE TYPE payment_method_t AS ENUM (
+  'cash',
+  'credit_card',
+  'debit_card',
+  'e_wallet'
+);
+-- create function transaction
+CREATE OR REPLACE FUNCTION create_transaction_with_payment(
+  invoice_number text,
+  staff_id bigint,
+  name_customer text,
+  total_amount bigint,
+  amount_paid bigint,
+  change bigint,
+  payment_method payment_method_type,
+  transaction_date timestamptz,
+  carts jsonb,
+  url_payment text DEFAULT NULL,
+  provider text DEFAULT NULL
+) RETURNS bigint -- Diubah ke RETURNS bigint
+LANGUAGE plpgsql AS $$
+DECLARE
+  new_transaction_id bigint;
+BEGIN
+  -- Insert transaksi
+  INSERT INTO transactions (
+    invoice_number,
+    staff_id,
+    name_customer,
+    total_amount,
+    amount_paid,
+    change,
+    payment_method,
+    transaction_date,
+    status,
+    url_payment,
+    provider
+  ) VALUES (
+    invoice_number,
+    staff_id,
+    name_customer,
+    total_amount,
+    amount_paid,
+    change,
+    payment_method,
+    transaction_date,
+    CASE 
+      WHEN payment_method = 'cash' THEN 'completed'::transaction_status
+      ELSE 'pending'::transaction_status
+    END,
+    url_payment,
+    provider
+  ) RETURNING id INTO new_transaction_id;
+
+  -- Insert detail transaksi
+  INSERT INTO detail_transactions (
+    transaction_id,
+    product_id,
+    product_name,
+    product_price,
+    quantity,
+    product_picture,
+    subtotal
+  )
+  SELECT
+    new_transaction_id,
+    (item->>'product_id')::bigint,
+    item->>'product_name',
+    (item->>'product_price')::bigint,
+    (item->>'quantity')::integer,
+    item->>'product_picture',
+    (item->>'subtotal')::bigint
+  FROM jsonb_array_elements(carts) AS item;
+
+  -- Perbaikan DELETE: gunakan alias dan kualifikasi parameter
+  DELETE FROM carts c
+  WHERE c.staff_id = create_transaction_with_payment.staff_id;
+
+  RETURN new_transaction_id; -- Langsung return nilai ID
+EXCEPTION
+  WHEN others THEN
+    RAISE EXCEPTION 'Error creating transaction: %', SQLERRM;
+END;
+$$;
+
+-- create table logs
+create table
+  logs (
+    id uuid not null default uuid_generate_v4() primary key,
+    created_at timestamp with time zone not null default now(),
+    level text not null check (level in ('error', 'warn', 'info', 'debug', 'verbose')),
+    message text not null,
+    context text null,
+    error_stack text null,
+    metadata jsonb null,
+    user_id uuid null references auth.users (id),
+    request_id text null
+  );

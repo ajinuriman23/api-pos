@@ -36,6 +36,17 @@ export class CartService {
       throw new BadRequestException('Role tidak valid');
     }
 
+    // cek status outlet
+    if (req.outlet) {
+      const outletStatus = Array.isArray(req.outlet)
+        ? req.outlet[0]?.status
+        : req.outlet.status;
+
+      if (outletStatus === 'inactive') {
+        throw new BadRequestException('Outlet sedang tutup');
+      }
+    }
+
     const { staff_id, outlet_id } = await this.extractStaffAndOutletIds(
       req,
       createCartDto,
