@@ -12,9 +12,9 @@ import {
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import RequestWithUser from 'src/interfaces/request.interface';
-import { SupabaseAuthGuard } from 'src/common/guards/auth/auth/auth.guard';
-import { OutletStatusGuard } from 'src/common/guards/outlet-status.guard';
+import RequestWithUser from '../interfaces/request.interface';
+import { SupabaseAuthGuard } from '../common/guards/auth/auth/auth.guard';
+import { OutletStatusGuard } from '../common/guards/outlet-status.guard';
 
 @UseGuards(SupabaseAuthGuard)
 @Controller('carts')

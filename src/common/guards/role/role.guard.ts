@@ -1,5 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import RequestWithUser from '../../../interfaces/request.interface';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -7,7 +13,10 @@ export class RoleGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // Ambil metadata 'roles' yang disimpan oleh decorator @Roles
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredRoles = this.reflector.get<string[]>(
+      'roles',
+      context.getHandler()
+    );
 
     // Jika tidak ada peran yang diperlukan, izinkan akses
     if (!requiredRoles) {
@@ -15,20 +24,23 @@ export class RoleGuard implements CanActivate {
     }
 
     // Ambil data pengguna dari request
-    const request = context.switchToHttp().getRequest();
+    const request: RequestWithUser = context.switchToHttp().getRequest();
     const user = request.user;
 
     // Jika pengguna tidak terautentikasi, tolak akses
     if (!user) {
-      throw new ForbiddenException('Anda harus login untuk mengakses resource ini');
+      throw new ForbiddenException(
+        'Anda harus login untuk mengakses resource ini'
+      );
     }
-
 
     // Periksa apakah pengguna memiliki salah satu peran yang diperlukan
     const hasRole = requiredRoles.some((role) => user.role === role);
 
     if (!hasRole) {
-      throw new ForbiddenException('Anda tidak memiliki izin untuk mengakses resource ini');
+      throw new ForbiddenException(
+        'Anda tidak memiliki izin untuk mengakses resource ini'
+      );
     }
 
     return true;

@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 
 // Pastikan direktori logs ada
-const logDir = 'logs';
+const logDir = path.join(__dirname, '../../../logs');
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
@@ -85,7 +85,6 @@ const formatMetadata = (info: TransformableInfo): TransformableInfo => {
 
 // Konfigurasi winston logger yang lebih terstruktur
 export const WinstonLoggerConfig = {
-  // Format dasar yang digunakan untuk semua transport
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
@@ -107,56 +106,38 @@ export const WinstonLoggerConfig = {
       ),
     }),
 
-    // Error file transport
-    new winston.transports.File({
-      filename: path.join(logDir, 'errors.log'),
-      level: 'error',
-      format: winston.format.json(),
-      handleExceptions: true,
-      maxsize: 5 * 1024 * 1024, // 5MB
-      maxFiles: 14,
-    }),
-
-    // Combined file transport
-    new winston.transports.File({
-      filename: path.join(logDir, 'combined.log'),
-      format: winston.format.json(),
-      maxsize: 10 * 1024 * 1024, // 10MB
-      maxFiles: 7,
-    }),
-
-    // Rotating file transport (uncomment jika diperlukan)
-    /*
-    new winston.transports.DailyRotateFile({
-      filename: path.join(logDir, 'application-%DATE%.log'),
-      datePattern: 'YYYY-MM-DD',
-      zippedArchive: true,
-      maxSize: '20m',
-      maxFiles: '30d',
-      format: winston.format.json(),
-    })
-    */
+    // File transports hanya untuk development
+    ...(process.env.NODE_ENV !== 'production'
+      ? [
+          new winston.transports.File({
+            filename: 'logs/errors.log',
+            level: 'error',
+            format: winston.format.json(),
+          }),
+          new winston.transports.File({
+            filename: 'logs/combined.log',
+            format: winston.format.json(),
+          }),
+        ]
+      : []),
   ],
-  // Penanganan exception khusus
+  // Exception handlers
   exceptionHandlers: [
-    new winston.transports.File({
-      filename: path.join(logDir, 'exceptions.log'),
+    new winston.transports.Console({
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json()
       ),
     }),
   ],
-  // Penanganan promise rejection khusus
+  // Rejection handlers
   rejectionHandlers: [
-    new winston.transports.File({
-      filename: path.join(logDir, 'rejections.log'),
+    new winston.transports.Console({
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json()
       ),
     }),
   ],
-  // Mencegah proses keluar setelah exception (baik untuk aplikasi produksi)
   exitOnError: false,
 };

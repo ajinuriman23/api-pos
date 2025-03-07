@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { User } from '@supabase/supabase-js';
 import { Response, NextFunction } from 'express';
-import { WinstonLoggerConfig } from 'src/common/config/logger.config';
-import Outlet from 'src/interfaces/outlet.interface';
-import RequestWithUser from 'src/interfaces/request.interface';
-import SupabaseError from 'src/interfaces/supabase-error.interface';
-import { SupabaseService } from 'src/supabase/supabase.service';
+import { WinstonLoggerConfig } from '../../config/logger.config';
+import Outlet from '../../../interfaces/outlet.interface';
+import RequestWithUser from '../../../interfaces/request.interface';
+import SupabaseError from '../../../interfaces/supabase-error.interface';
+import { SupabaseService } from '../../../supabase/supabase.service';
 import { createLogger, Logger } from 'winston';
 
 @Injectable()

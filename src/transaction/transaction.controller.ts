@@ -11,14 +11,14 @@ import {
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import RequestWithUser from 'src/interfaces/request.interface';
+import RequestWithUser from '../interfaces/request.interface';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { SupabaseAuthGuard } from 'src/common/guards/auth/auth/auth.guard';
-import { RoleGuard } from 'src/common/guards/role/role.guard';
-import { Roles } from 'src/common/decorators/roles/roles.decorator';
-import { XenditWebhookSchema } from 'src/xendit/dto/webhook.dto';
-import { XenditService } from 'src/xendit/xendit.service';
-import { OutletStatusGuard } from 'src/common/guards/outlet-status.guard';
+import { SupabaseAuthGuard } from '../common/guards/auth/auth/auth.guard';
+import { RoleGuard } from '../common/guards/role/role.guard';
+import { Roles } from '../common/decorators/roles/roles.decorator';
+import { XenditWebhookSchema } from '../xendit/dto/webhook.dto';
+import { XenditService } from '../xendit/xendit.service';
+import { OutletStatusGuard } from '../common/guards/outlet-status.guard';
 
 @Controller('transaction')
 export class TransactionController {
