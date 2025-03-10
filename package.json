@@ -1,8 +1,8 @@
 {
   "name": "api-pos",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "API POS",
+  "author": "Farhan",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

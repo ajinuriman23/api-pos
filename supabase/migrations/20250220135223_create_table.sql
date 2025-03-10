@@ -164,11 +164,11 @@ CREATE TABLE detail_transactions (
 );
 
 CREATE TRIGGER update_detail_transaction_updated_at
-    BEFORE UPDATE ON detail_transaction
+    BEFORE UPDATE ON detail_transactions
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE INDEX idx_detail_transaction_transaction ON detail_transaction(transaction_id);
+CREATE INDEX idx_detail_transaction_transaction ON detail_transactions(transaction_id);
 
 
 -- 20240220000010_create_carts.sql
@@ -201,13 +201,6 @@ CREATE TABLE settings (
     UNIQUE(outlet_id)
 );
 
-
--- 20240220000013_enable_rls.sql
--- Up Migration
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE detail_transaction ENABLE ROW LEVEL SECURITY;
 
 
 -- create enum payment_method
